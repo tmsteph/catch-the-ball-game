@@ -15,10 +15,12 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
+      overflow: hidden;
     }
     canvas {
       background-color: #444;
       border: 2px solid white;
+      box-sizing: border-box;
     }
     #controls {
       text-align: center;
@@ -54,15 +56,16 @@
     const ctx = canvas.getContext('2d');
     const gameButton = document.getElementById('gameButton');
 
-    // Set canvas size dynamically
+    // Set canvas size dynamically for mobile
     const updateCanvasSize = () => {
-      canvas.width = Math.min(window.innerWidth - 20, 800);
-      canvas.height = Math.min(window.innerHeight - 100, 600);
+      canvas.width = Math.min(window.innerWidth - 20, 800); // Fit width with padding
+      canvas.height = Math.min(window.innerHeight - 150, 600); // Leave space for controls
     };
     updateCanvasSize();
 
     let score = 0;
     let isGameOver = false;
+    let gameLoopId = null;
 
     // Paddle
     const paddle = {
@@ -95,17 +98,20 @@
     canvas.addEventListener('touchstart', (e) => movePaddle(e.touches[0].clientX));
     canvas.addEventListener('touchmove', (e) => {
       movePaddle(e.touches[0].clientX);
-      e.preventDefault();
+      e.preventDefault(); // Prevent scrolling while playing
     });
 
     // Reset Game
     const resetGame = () => {
+      cancelAnimationFrame(gameLoopId); // Stop the existing game loop
       score = 0;
       isGameOver = false;
       paddle.x = canvas.width / 2 - paddle.width / 2;
       ball.x = Math.random() * canvas.width;
       ball.y = 0;
       document.getElementById('score').innerText = `Score: ${score}`;
+      gameRunning = true; // Keep the game running
+      gameLoop(); // Restart the game loop
     };
 
     // Start Game
@@ -113,7 +119,6 @@
       gameRunning = true;
       gameButton.innerText = "Reset Game";
       resetGame();
-      gameLoop();
     };
 
     gameButton.addEventListener('click', () => {
@@ -171,7 +176,7 @@
         drawPaddle();
         drawBall();
         updateBall();
-        requestAnimationFrame(gameLoop);
+        gameLoopId = requestAnimationFrame(gameLoop);
       } else {
         ctx.fillStyle = 'white';
         ctx.font = '30px Arial';
@@ -188,3 +193,4 @@
   </script>
 </body>
 </html>
+
