@@ -10,11 +10,13 @@
       background-color: #222;
       color: white;
       font-family: Arial, sans-serif;
-      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
     canvas {
-      display: block;
-      margin: 20px auto;
       background-color: #444;
       border: 2px solid white;
     }
@@ -24,6 +26,7 @@
     }
     #score {
       font-size: 20px;
+      margin-bottom: 10px;
     }
     #reset {
       background-color: #ff4444;
@@ -42,25 +45,30 @@
 <body>
   <div id="controls">
     <div id="score">Score: 0</div>
-    <button id="reset">Reset Game</button>
+    <button id="reset">Reset</button>
   </div>
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <canvas id="gameCanvas"></canvas>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+
+    // Set canvas size dynamically
+    const updateCanvasSize = () => {
+      canvas.width = Math.min(window.innerWidth - 20, 800);
+      canvas.height = Math.min(window.innerHeight - 100, 600);
+    };
+    updateCanvasSize();
 
     let score = 0;
     let isGameOver = false;
 
     // Paddle
     const paddle = {
-      width: 100,
+      width: canvas.width / 5,
       height: 20,
-      x: canvas.width / 2 - 50,
+      x: canvas.width / 2 - canvas.width / 10,
       y: canvas.height - 30,
-      dx: 0,
-      speed: 8,
     };
 
     // Ball
@@ -71,15 +79,20 @@
       speed: 4,
     };
 
-    // Move Paddle
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') paddle.dx = -paddle.speed;
-      if (e.key === 'ArrowRight') paddle.dx = paddle.speed;
+    // Mouse interaction
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      paddle.x = Math.max(0, Math.min(mouseX - paddle.width / 2, canvas.width - paddle.width));
     });
 
-    document.addEventListener('keyup', () => {
-      paddle.dx = 0;
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      paddle.x = Math.max(0, Math.min(clickX - paddle.width / 2, canvas.width - paddle.width));
     });
+
+    document.getElementById('reset').addEventListener('click', resetGame);
 
     function drawPaddle() {
       ctx.fillStyle = 'white';
@@ -92,12 +105,6 @@
       ctx.fillStyle = 'red';
       ctx.fill();
       ctx.closePath();
-    }
-
-    function updatePaddle() {
-      paddle.x += paddle.dx;
-      if (paddle.x < 0) paddle.x = 0;
-      if (paddle.x + paddle.width > canvas.width) paddle.x = canvas.width - paddle.width;
     }
 
     function updateBall() {
@@ -129,7 +136,6 @@
 
     function update() {
       if (!isGameOver) {
-        updatePaddle();
         updateBall();
       } else {
         ctx.fillStyle = 'white';
@@ -148,14 +154,16 @@
       document.getElementById('score').innerText = `Score: ${score}`;
     }
 
-    // Reset button event
-    document.getElementById('reset').addEventListener('click', resetGame);
-
     function gameLoop() {
       draw();
       update();
       requestAnimationFrame(gameLoop);
     }
+
+    window.addEventListener('resize', () => {
+      updateCanvasSize();
+      resetGame();
+    });
 
     gameLoop();
   </script>
