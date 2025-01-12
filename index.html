@@ -28,7 +28,7 @@
       font-size: 20px;
       margin-bottom: 10px;
     }
-    #reset {
+    #gameButton {
       background-color: #ff4444;
       color: white;
       border: none;
@@ -37,7 +37,7 @@
       cursor: pointer;
       border-radius: 5px;
     }
-    #reset:hover {
+    #gameButton:hover {
       background-color: #ff6666;
     }
   </style>
@@ -45,13 +45,14 @@
 <body>
   <div id="controls">
     <div id="score">Score: 0</div>
-    <button id="reset">Reset</button>
+    <button id="gameButton">Start Game</button>
   </div>
   <canvas id="gameCanvas"></canvas>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    const gameButton = document.getElementById('gameButton');
 
     // Set canvas size dynamically
     const updateCanvasSize = () => {
@@ -79,6 +80,8 @@
       speed: 4,
     };
 
+    let gameRunning = false;
+
     // Unified Paddle Movement Function
     const movePaddle = (x) => {
       const rect = canvas.getBoundingClientRect();
@@ -103,10 +106,23 @@
       ball.x = Math.random() * canvas.width;
       ball.y = 0;
       document.getElementById('score').innerText = `Score: ${score}`;
-      draw(); // Explicitly draw the paddle and ball after resetting
     };
 
-    document.getElementById('reset').addEventListener('click', resetGame);
+    // Start Game
+    const startGame = () => {
+      gameRunning = true;
+      gameButton.innerText = "Reset Game";
+      resetGame();
+      gameLoop();
+    };
+
+    gameButton.addEventListener('click', () => {
+      if (!gameRunning) {
+        startGame();
+      } else {
+        resetGame();
+      }
+    });
 
     // Draw Paddle
     const drawPaddle = () => {
@@ -147,28 +163,21 @@
 
     // Main Game Loop
     const gameLoop = () => {
+      if (!gameRunning) return;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       if (!isGameOver) {
         drawPaddle();
         drawBall();
         updateBall();
+        requestAnimationFrame(gameLoop);
       } else {
         ctx.fillStyle = 'white';
         ctx.font = '30px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('Game Over! Press Reset', canvas.width / 2, canvas.height / 2);
       }
-
-      requestAnimationFrame(gameLoop);
-    };
-
-    // Initialize Game
-    const initializeGame = () => {
-      updateCanvasSize();
-      resetGame();
-      draw(); // Explicitly draw paddle and ball on initialization
-      gameLoop();
     };
 
     // Handle Window Resizing
@@ -176,9 +185,6 @@
       updateCanvasSize();
       resetGame();
     });
-
-    // Start the game automatically
-    initializeGame();
   </script>
 </body>
 </html>
