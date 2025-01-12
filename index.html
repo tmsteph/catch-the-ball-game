@@ -79,18 +79,31 @@
       speed: 4,
     };
 
-    // Mouse interaction
+    // Track touch movement
     canvas.addEventListener('mousemove', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      paddle.x = Math.max(0, Math.min(mouseX - paddle.width / 2, canvas.width - paddle.width));
+      movePaddle(e.clientX);
     });
 
-    canvas.addEventListener('click', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      paddle.x = Math.max(0, Math.min(clickX - paddle.width / 2, canvas.width - paddle.width));
+    canvas.addEventListener('mousedown', (e) => {
+      movePaddle(e.clientX);
     });
+
+    canvas.addEventListener('touchstart', (e) => {
+      const touchX = e.touches[0].clientX;
+      movePaddle(touchX);
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      const touchX = e.touches[0].clientX;
+      movePaddle(touchX);
+      e.preventDefault(); // Prevent scrolling while playing
+    });
+
+    function movePaddle(x) {
+      const rect = canvas.getBoundingClientRect();
+      const posX = x - rect.left;
+      paddle.x = Math.max(0, Math.min(posX - paddle.width / 2, canvas.width - paddle.width));
+    }
 
     document.getElementById('reset').addEventListener('click', resetGame);
 
